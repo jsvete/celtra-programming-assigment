@@ -3,8 +3,11 @@ package persistence
 
 import "celtra-programming-assigment/cmd/tracker/dto"
 
+// DB is an active database connection
+var DB Database
+
 // Database interface represents the connection to the database
-// and defines methods that can be implemented by various datasources.
+// and defines methods that can be implemented by various database providers.
 //
 // It can also be used to create a mocked implementation for testing purposes.
 type Database interface {
@@ -12,14 +15,10 @@ type Database interface {
 	IsActiveAccount(ID int) (bool, error)
 	// CreateAccount creates a new account.
 	//
-	// - ID       - required
-	//
 	// - name     - required
 	//
 	// - isActive - optional (default: false)
-	CreateAccount(ID int, name string, isActive bool) (*dto.Account, error)
-	// DeactivateAccount flags an account as inactive.
-	DeactivateAccount(ID int) error
+	CreateAccount(name string, isActive bool) (*dto.Account, error)
 	// GetAccount returns an account record matching the ID.
 	GetAccount(ID int) (*dto.Account, error)
 }
