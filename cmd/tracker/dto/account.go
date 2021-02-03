@@ -5,5 +5,5 @@ package dto
 type Account struct {
 	ID       int
 	Name     string
-	isActive bool
+	IsActive bool
 }

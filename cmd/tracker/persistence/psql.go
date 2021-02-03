@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
+	_ "github.com/lib/pq" // postgres database driver
 )
 
 // variables defining information to successfully connect to the database
@@ -22,10 +24,17 @@ type Postgres struct {
 	db *sql.DB
 }
 
-// IsActiveAccount check if a given account ID is active or not
+// IsActiveAccount check if a given account ID is active or not.
 func (pg *Postgres) IsActiveAccount(ID int) (bool, error) {
+	var isActive bool
 
-	return true, nil
+	row := pg.db.QueryRow("SELECT isActive FROM account WHERE id = $1", ID)
+
+	if err := row.Scan(&isActive); err != nil {
+		return false, err
+	}
+
+	return isActive, nil
 }
 
 // CreateAccount creates a new account.
@@ -34,28 +43,52 @@ func (pg *Postgres) IsActiveAccount(ID int) (bool, error) {
 //
 // - isActive - optional (default: false)
 func (pg *Postgres) CreateAccount(name string, isActive bool) (*dto.Account, error) {
+	var id int
+	row := pg.db.QueryRow("INSERT INTO account (name, isActive) VALUES ($1, $2) RETURNING id", name, isActive)
 
-	return nil, nil
+	if err := row.Scan(&id); err != nil {
+		return nil, err
+	}
+
+	return &dto.Account{
+		ID:       id,
+		Name:     name,
+		IsActive: isActive,
+	}, nil
 }
 
 // GetAccount returns an account record matching the ID.
 func (pg *Postgres) GetAccount(ID int) (*dto.Account, error) {
+	account := dto.Account{}
 
-	return nil, nil
+	row := pg.db.QueryRow("SELECT * FROM account WHERE id = $1", ID)
+
+	if err := row.Scan(&(account.ID), &(account.Name), &(account.IsActive)); err != nil {
+		return nil, err
+	}
+
+	return &account, nil
 }
 
 // NewPostgres creates a new instance of Postgres.
 func NewPostgres() error {
-	pg := &Postgres{}
-	dataSource := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%s", dbUser, dbName, dbPwd, dbAddr, dbPort)
+	dbName = os.Getenv("DB_NAME")
+	dbUser = os.Getenv("DB_USER")
+	dbPwd = os.Getenv("DB_PWD")
+	dbAddr = os.Getenv("DB_ADDR")
+	dbPort = os.Getenv("DB_PORT")
 
-	db, err := sql.Open("posgres", dataSource)
+	pg := &Postgres{}
+	dataSource := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPwd, dbAddr, dbPort, dbName)
+	fmt.Println(dataSource)
+	db, err := sql.Open("postgres", dataSource)
 	if err != nil {
 		return err
 	}
 
 	pg.db = db
 
+	// query the database to see if it has the account table
 	rows, err := pg.db.Query("SELECT * FROM account LIMIT 1")
 	if err != nil {
 		// database isn't set up yet, lets create an account table and populate it with data
@@ -64,7 +97,7 @@ func NewPostgres() error {
 			id       SERIAL        PRIMARY KEY,
 			name     VARCHAR (255) NOT NULL,
 			isActive BOOLEAN       DEFAULT TRUE
-		)
+		);
 
 		INSERT INTO account (name) SELECT md5(RANDOM()::TEXT) FROM generate_series(1, 1000);
 		`)
@@ -78,12 +111,4 @@ func NewPostgres() error {
 	DB = pg
 
 	return err
-}
-
-func init() {
-	dbName = os.Getenv("DB_NAME")
-	dbUser = os.Getenv("DB_USER")
-	dbPwd = os.Getenv("DB_PWD")
-	dbAddr = os.Getenv("DB_ADDR")
-	dbPort = os.Getenv("DB_PORT")
 }

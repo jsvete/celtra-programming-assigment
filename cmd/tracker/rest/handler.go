@@ -15,11 +15,21 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandleGet function handles GET requests.
+// CreateRouter returns a router with registered handlers
+func CreateRouter() *httprouter.Router {
+	router := httprouter.New()
+	router.GET("/:accountId", handleGet)
+	router.POST("/", handlePost)
+	router.PUT("/:accountId", handlePut)
+
+	return router
+}
+
+// handleGet function handles GET requests.
 //
 // It returns a JSON representation of an account matching the accountID (e.g. GET BASE_URL/{accountID}).
-func HandleGet(w http.ResponseWriter, r *http.Request) {
-	accountID, err := parseAccountID(r)
+func handleGet(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	accountID, err := parseAccountID(params)
 	if err != nil {
 		log.Error().Msgf("invalid accountId value: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -43,18 +53,19 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(body)
 	if err != nil {
 		log.Error().Msgf("writing body for account %d: %v", accountID, err)
 	}
 }
 
-// HandlePost function handles POST requests.
+// handlePost function handles POST requests.
 //
 // It creates a new account and returns a Location header with a relative URL where the new account can be accesed from.
 //
 // The function accepts JSON payload in the following format: {"name":"ACCOUNT_NAME", "isActive": true/false}
-func HandlePost(w http.ResponseWriter, r *http.Request) {
+func handlePost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
@@ -66,8 +77,8 @@ func HandlePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bodyStruct := struct {
-		name     string
-		isActive bool
+		Name     string
+		IsActive bool
 	}{}
 
 	if err := json.Unmarshal(bodyBytes, &bodyStruct); err != nil {
@@ -77,7 +88,7 @@ func HandlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := persistence.DB.CreateAccount(bodyStruct.name, bodyStruct.isActive)
+	account, err := persistence.DB.CreateAccount(bodyStruct.Name, bodyStruct.IsActive)
 	if err != nil {
 		log.Error().Msgf("creating new account: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -89,11 +100,11 @@ func HandlePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// HandlePut function handles PUT requests.
+// handlePut function handles PUT requests.
 //
 // It is used to receive events for a specific account (e.g. PUT BASE_URL/{accountID}?data="ACCOUNT_DATA")
-func HandlePut(w http.ResponseWriter, r *http.Request) {
-	accountID, err := parseAccountID(r)
+func handlePut(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	accountID, err := parseAccountID(params)
 	if err != nil {
 		log.Error().Msgf("invalid accountId value: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -103,7 +114,7 @@ func HandlePut(w http.ResponseWriter, r *http.Request) {
 
 	active, err := persistence.DB.IsActiveAccount(accountID)
 	if err != nil {
-		log.Error().Msgf("checking if accountID %s is active: %v", accountID, err)
+		log.Error().Msgf("checking if accountID %d is active: %v", accountID, err)
 		w.WriteHeader(http.StatusBadRequest)
 
 		return
@@ -112,6 +123,8 @@ func HandlePut(w http.ResponseWriter, r *http.Request) {
 	if !active {
 		log.Error().Msgf("accoundID %d is not active: %v", accountID, err)
 		w.WriteHeader(http.StatusBadRequest)
+
+		return
 	}
 
 	data := r.URL.Query().Get("data")
@@ -132,8 +145,7 @@ func HandlePut(w http.ResponseWriter, r *http.Request) {
 }
 
 // parseAccountID is a helper function to parse account ID from the request context.
-func parseAccountID(r *http.Request) (int, error) {
-	params := httprouter.ParamsFromContext(r.Context())
+func parseAccountID(params httprouter.Params) (int, error) {
 	accountIDParam := params.ByName("accountId")
 
 	if accountIDParam == "" {
@@ -142,7 +154,7 @@ func parseAccountID(r *http.Request) (int, error) {
 
 	accountID, err := strconv.Atoi(accountIDParam)
 	if err != nil {
-		return -1, fmt.Errorf("invalid accountId %d: %v", accountIDParam, err)
+		return -1, fmt.Errorf("invalid accountId %s: %v", accountIDParam, err)
 	}
 
 	return accountID, nil
