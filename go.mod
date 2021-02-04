@@ -12,6 +12,7 @@ require (
 	github.com/lib/pq v0.0.0-20180327071824-d34b9ff171c2
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/ory/dockertest/v3 v3.6.3
+	github.com/peterh/liner v1.2.1
 	github.com/rs/zerolog v1.20.0
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect

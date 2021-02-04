@@ -10,8 +10,9 @@ var Bus PubSub
 
 // Event struct wraps the data that is received when subscribing to an account event stream.
 type Event struct {
-	timestamp time.Time
-	data      string
+	ID        int
+	Timestamp time.Time
+	Data      string
 }
 
 // PubSub interface represents the connection to the messaging bus
@@ -19,10 +20,10 @@ type Event struct {
 //
 // It can also be used to create a mocked implementation for testing purposes.
 type PubSub interface {
-	// Publish publishes the account's data to the Bus.
+	// Publish publishes the account's data to the "events" subscriptiono.
 	Publish(accountID int, data string) error
-	// Subscribe is used to subscribe to one or multiple accounts.
+	// Subscribe is used to subscribe to an "events" channel.
 	//
 	// Returns a channel where you can receive those events.
-	Subscribe(accountID ...int) (chan *Event, error)
+	Subscribe() chan *Event
 }

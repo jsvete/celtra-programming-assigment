@@ -1,9 +1,9 @@
 package main
 
 import (
-	"celtra-programming-assigment/cmd/tracker/persistence"
-	"celtra-programming-assigment/cmd/tracker/rest"
+	"celtra-programming-assigment/pkg/persistence"
 	"celtra-programming-assigment/pkg/pubsub"
+	"celtra-programming-assigment/pkg/rest"
 	"net/http"
 
 	"github.com/rs/zerolog"

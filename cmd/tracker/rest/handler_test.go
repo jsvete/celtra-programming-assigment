@@ -3,8 +3,8 @@ package rest
 
 import (
 	"bytes"
-	"celtra-programming-assigment/cmd/tracker/dto"
-	"celtra-programming-assigment/cmd/tracker/persistence"
+	"celtra-programming-assigment/pkg/dto"
+	"celtra-programming-assigment/pkg/persistence"
 	"celtra-programming-assigment/pkg/pubsub"
 	"encoding/json"
 	"errors"
@@ -51,7 +51,7 @@ func (m *mockedDB) GetAccount(ID int) (*dto.Account, error) {
 // functions that can be used to mock the publish/subscribe calls.
 type mockedBus struct {
 	FnPublish   func(accountID int, data string) error
-	FnSubscribe func(accountID ...int) (chan *pubsub.Event, error)
+	FnSubscribe func() chan *pubsub.Event
 }
 
 func (b *mockedBus) Publish(accountID int, data string) error {
@@ -62,12 +62,12 @@ func (b *mockedBus) Publish(accountID int, data string) error {
 	return b.FnPublish(accountID, data)
 }
 
-func (b *mockedBus) Subscribe(accountID ...int) (chan *pubsub.Event, error) {
+func (b *mockedBus) Subscribe() chan *pubsub.Event {
 	if b.FnSubscribe == nil {
-		return nil, errorNotImplemented
+		return nil
 	}
 
-	return b.FnSubscribe(accountID...)
+	return b.FnSubscribe()
 }
 
 var (

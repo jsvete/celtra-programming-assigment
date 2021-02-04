@@ -2,7 +2,7 @@
 package rest
 
 import (
-	"celtra-programming-assigment/cmd/tracker/persistence"
+	"celtra-programming-assigment/pkg/persistence"
 	"celtra-programming-assigment/pkg/pubsub"
 	"encoding/json"
 	"errors"

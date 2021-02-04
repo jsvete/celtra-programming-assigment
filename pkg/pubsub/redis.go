@@ -4,9 +4,7 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -23,6 +21,8 @@ type Redis struct {
 
 // NewRedis creates a new PubSub client that uses Redis for publishing and subscribing to events.
 func NewRedis() error {
+	redisAddr = os.Getenv("REDIS_ADDR")
+
 	redisBus := redis.NewClient(&redis.Options{
 		Addr: redisAddr,
 	})
@@ -42,8 +42,9 @@ func NewRedis() error {
 // Publish publishes the account's data to the Bus.
 func (r *Redis) Publish(accountID int, data string) error {
 	event := Event{
-		timestamp: time.Now().UTC(),
-		data:      data,
+		ID:        accountID,
+		Timestamp: time.Now().UTC(),
+		Data:      data,
 	}
 
 	eventData, err := json.Marshal(event)
@@ -51,25 +52,16 @@ func (r *Redis) Publish(accountID int, data string) error {
 		return err
 	}
 
-	return r.client.Publish(context.Background(), strconv.Itoa(accountID), string(eventData)).Err()
+	return r.client.Publish(context.Background(), "events", string(eventData)).Err()
 }
 
 // Subscribe is used to subscribe to one or multiple accounts.
 //
 // Returns a channel where you can receive those events.
-func (r *Redis) Subscribe(accountID ...int) (chan *Event, error) {
+func (r *Redis) Subscribe() chan *Event {
 	eventChan := make(chan *Event)
 
-	if len(accountID) < 1 {
-		return nil, errors.New("need to specify one or more account IDs to subscribe to")
-	}
-
-	subscriptions := []string{}
-	for _, id := range accountID {
-		subscriptions = append(subscriptions, strconv.Itoa(id))
-	}
-
-	sub := r.client.Subscribe(context.Background(), subscriptions...)
+	sub := r.client.Subscribe(context.Background(), "events")
 
 	go func() {
 		for msg := range sub.Channel() {
@@ -80,8 +72,9 @@ func (r *Redis) Subscribe(accountID ...int) (chan *Event, error) {
 				log.Warn().Msgf("error while deserializing event, sending error on event chan: %v", err)
 
 				eventChan <- &Event{
-					timestamp: time.Now().UTC(),
-					data:      err.Error(),
+					ID:        -1,
+					Timestamp: time.Now().UTC(),
+					Data:      err.Error(),
 				}
 
 				continue
@@ -91,9 +84,5 @@ func (r *Redis) Subscribe(accountID ...int) (chan *Event, error) {
 		}
 	}()
 
-	return eventChan, nil
-}
-
-func init() {
-	redisAddr = os.Getenv("REDIS_ADDR")
+	return eventChan
 }

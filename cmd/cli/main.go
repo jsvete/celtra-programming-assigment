@@ -1,82 +1,85 @@
 package main
 
 import (
-	"celtra-programming-assigment/cmd/cli/ui"
+	"celtra-programming-assigment/pkg/pubsub"
+	"flag"
 	"fmt"
-	"log"
-	"time"
+	"os"
+	"strings"
 
-	"github.com/gizak/termui/v3"
+	"github.com/peterh/liner"
 )
 
 var (
-	ids = []string{
-		"ID1",
-		"ID2",
-		"ID3",
-		"ID4",
-		"ID5",
-		"ID6",
-		"ID7",
-		"ID8",
-		"ID9",
-		"ID10",
-	}
+	redisAddr = flag.String("addr", "localhost", "Redis address")
+	redisPort = flag.String("port", "6379", "Redis port")
+
+	commands = []string{"accounts", "events"}
 )
 
 func main() {
-	if err := termui.Init(); err != nil {
-		log.Fatalf("failed to initialize CLI client: %v", err)
+	flag.Parse()
+
+	addr := *redisAddr + ":" + *redisPort
+	os.Setenv("REDIS_ADDR", addr)
+	fmt.Printf("Connecting to Redis@%s\n", addr)
+
+	if err := pubsub.NewRedis(); err != nil {
+		panic(err)
 	}
-	defer termui.Close()
 
-	// setup UI elements
-	l := ui.NewList("ACCOUNT ID", ids)
-	p := ui.NewPanel("DATA", "")
+	cli := liner.NewLiner()
+	defer cli.Close()
 
-	l.SetRect(0, 0, 25, 20)
-	p.SetRect(26, 0, 70, 20)
+	cli.SetCtrlCAborts(true)
 
-	termui.Render(l, p)
-
-	previousKey := ""
-	uiEvents := termui.PollEvents()
-	for {
-		e := <-uiEvents
-
-		switch e.ID {
-		case "q", "<C-c>":
-			return
-		case "j", "<Down>":
-			l.ScrollDown()
-		case "k", "<Up>":
-			l.ScrollUp()
-		case "<C-d>":
-			l.ScrollHalfPageDown()
-		case "<C-u>":
-			l.ScrollHalfPageUp()
-		case "<C-f>":
-			l.ScrollPageDown()
-		case "<C-b>":
-			l.ScrollPageUp()
-		case "g":
-			if previousKey == "g" {
-				l.ScrollTop()
+	cli.SetCompleter(func(line string) (c []string) {
+		for _, command := range commands {
+			if strings.HasPrefix(command, strings.ToLower(line)) {
+				c = append(c, command)
 			}
-		case "<Home>":
-			l.ScrollTop()
-		case "G", "<End>":
-			l.ScrollBottom()
-		case "<Enter>":
-			p.Update(fmt.Sprintf("<%s>: %s%s%s\n", time.Now().UTC().Format("15:04:05.000 UTC"), "DATA FOR ", ids[l.SelectedRow], " HERE"))
 		}
 
-		if previousKey == "g" {
-			previousKey = ""
-		} else {
-			previousKey = e.ID
+		return
+	})
+
+	for {
+		fmt.Printf("options: %s\n", commands)
+		command, err := cli.Prompt(">")
+		if err != nil {
+			if err == liner.ErrPromptAborted {
+				fmt.Println("Goodbye!")
+				break
+			} else {
+				fmt.Printf("Error reading line: %v\n", err)
+			}
 		}
 
-		termui.Render(l, p)
+		switch command {
+		case "accounts":
+			fmt.Printf(" already selected accounts: %d\n", selectedAccounts())
+			fmt.Printf(" input space separated account IDs\n")
+			accounts, err := cli.Prompt("accounts >")
+			if err != nil {
+				if err == liner.ErrPromptAborted {
+					break
+				} else {
+					fmt.Printf("Error reading line: %v\n", err)
+				}
+			}
+
+			fmt.Printf(" current selected accounts: %d\n", selectAccounts(strings.Split(accounts, " ")...))
+		case "events":
+			if len(selectedIds) < 1 {
+				fmt.Printf(" no account IDs selected\n")
+				break
+			}
+
+			fmt.Printf("listening for events from: %d\n", selectedAccounts())
+
+			listenForEvents()
+		default:
+			fmt.Printf("unrecognized command: %s\n", command)
+		}
 	}
 }
