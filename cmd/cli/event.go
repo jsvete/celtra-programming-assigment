@@ -7,8 +7,9 @@ import (
 
 func listenForEvents() {
 	defer fmt.Printf("stopped listening\n")
+	events := pubsub.Bus.Subscribe()
 
-	for event := range pubsub.Bus.Subscribe() {
+	for event := range events {
 		if event.ID < 1 {
 			fmt.Printf("<%s>: error: %s", event.Timestamp.Format("2006-01-02 15:04:05:000"), event.Data)
 		} else if _, ok := selectedIds[event.ID]; ok {

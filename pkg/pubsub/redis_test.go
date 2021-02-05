@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("container start: %v", err))
 	}
-	//resource.Expire(60)
+	//	resource.Expire(60)
 
 	os.Setenv("REDIS_ADDR", "localhost:6379")
 
@@ -66,6 +66,8 @@ func TestMain(m *testing.M) {
 func Test_PubSub(t *testing.T) {
 	eventChan := Bus.Subscribe()
 
+	// need to wait a bit for Redis to register the subscription before we can publish or the event is lost
+	time.Sleep(3 * time.Second)
 
 	err := Bus.Publish(1, "test data")
 	if err != nil {

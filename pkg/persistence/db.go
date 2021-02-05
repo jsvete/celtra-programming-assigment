@@ -1,7 +1,7 @@
 // Package persistence contains database logic.
 package persistence
 
-import "celtra-programming-assigment/cmd/tracker/dto"
+import "celtra-programming-assigment/pkg/dto"
 
 // DB is an active database connection
 var DB Database

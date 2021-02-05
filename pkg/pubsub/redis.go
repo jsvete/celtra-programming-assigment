@@ -25,6 +25,7 @@ func NewRedis() error {
 
 	redisBus := redis.NewClient(&redis.Options{
 		Addr: redisAddr,
+		DB:   0,
 	})
 
 	status := redisBus.Ping(context.Background())
@@ -64,7 +65,9 @@ func (r *Redis) Subscribe() chan *Event {
 	sub := r.client.Subscribe(context.Background(), "events")
 
 	go func() {
-		for msg := range sub.Channel() {
+		msgChan := sub.Channel()
+
+		for msg := range msgChan {
 			payload := []byte(msg.Payload)
 
 			event := &Event{}

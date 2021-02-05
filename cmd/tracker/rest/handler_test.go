@@ -130,6 +130,8 @@ func Test_Post(t *testing.T) {
 		t.Fatalf("creating request: %v", err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := server.Client().Do(req)
 	if err != nil {
 		t.Fatalf("POST request failed: %v", err)
@@ -169,6 +171,8 @@ func Test_PostBadDatabase(t *testing.T) {
 		t.Fatalf("creating request: %v", err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := server.Client().Do(req)
 	if err != nil {
 		t.Fatalf("POST request failed: %v", err)
@@ -189,6 +193,8 @@ func Test_PostBadBody(t *testing.T) {
 	if err != nil {
 		t.Fatalf("creating request: %v", err)
 	}
+
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := server.Client().Do(req)
 	if err != nil {

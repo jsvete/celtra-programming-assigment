@@ -12,7 +12,7 @@ var selectedIds = map[int]struct{}{}
 // and outputs a sorted slice of already selected account IDs.
 func selectedAccounts() []int {
 	ids := []int{}
-	for id, _ := range selectedIds {
+	for id := range selectedIds {
 		ids = append(ids, id)
 	}
 

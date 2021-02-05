@@ -10,15 +10,21 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/paulbellamy/ratecounter"
 	"github.com/rs/zerolog/log"
 )
+
+var counter = ratecounter.NewRateCounter(1 * time.Second)
 
 // CreateRouter returns a router with registered handlers
 func CreateRouter() *httprouter.Router {
 	router := httprouter.New()
 	router.GET("/:accountId", handleGet)
+	router.GET("/", handleRate)
 	router.POST("/", handlePost)
 	router.PUT("/:accountId", handlePut)
 
@@ -60,6 +66,32 @@ func handleGet(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	}
 }
 
+// handleGet function handles GET requests.
+//
+// It returns a JSON representation of an account matching the accountID (e.g. GET BASE_URL/{accountID}).
+func handleRate(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	rate := struct {
+		Rate    int64
+		MaxRate int64
+	}{
+		Rate:    counter.Rate(),
+		MaxRate: counter.MaxRate(),
+	}
+	body, err := json.Marshal(rate)
+	if err != nil {
+		log.Error().Msgf("serializing to JSON: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(body)
+	if err != nil {
+		log.Error().Msgf("writing body: %v", err)
+	}
+}
+
 // handlePost function handles POST requests.
 //
 // It creates a new account and returns a Location header with a relative URL where the new account can be accesed from.
@@ -67,6 +99,12 @@ func handleGet(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 // The function accepts JSON payload in the following format: {"name":"ACCOUNT_NAME", "isActive": true/false}
 func handlePost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
+
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -138,7 +176,10 @@ func handlePut(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	go func() {
 		if err := pubsub.Bus.Publish(accountID, data); err != nil {
 			log.Error().Msgf("publishing event for accoundID %d: %v", accountID, err)
+			return
 		}
+
+		counter.Incr(1)
 	}()
 
 	w.WriteHeader(http.StatusAccepted)

@@ -3,7 +3,7 @@ package main
 import (
 	"celtra-programming-assigment/pkg/persistence"
 	"celtra-programming-assigment/pkg/pubsub"
-	"celtra-programming-assigment/pkg/rest"
+	"celtra-programming-assigment/cmd/tracker/rest"
 	"net/http"
 
 	"github.com/rs/zerolog"

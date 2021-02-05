@@ -3,7 +3,9 @@
 ## Requrements
 
 - [Git](https://git-scm.com/downloads) to pull code from this repository
-- [Docker](https://hub.docker.com/search?q=&type=edition&offering=community) to build and deploy code inside Docker container
+- [Golang](https://golang.org/dl/) to run integration tests for REST and database
+- [Docker](https://hub.docker.com/search?q=&type=edition&offering=community) to build Docker images
+- [Docker Compose](https://docs.docker.com/compose/install/) to start all the services at once and the correct order 
 
 ## Prepare the environment
 
@@ -12,16 +14,12 @@
 git clone git@github.com:jsvete/celtra-programming-assigment.git
 ```
 
-2. Build `godev` image
+2. Build small `cli` and `tracker` images
 ```
-docker build -t godev .
+docker build --build-arg SERVICE=cli -t cli:latest .
+```
+```
+docker build --build-arg SERVICE=tracker -t tracker:latest .
 ```
 
-2. Chech if everything works; you should see the directory structure printed out
-```
-docker run --rm -v <FULL_LOCAL_PATH_TO_CLONED_REPOSITORY>:/code godev  ls -la
-```
-Example (on linux):
-```
-docker run --rm -v $PWD:/code godev  ls -la
-```
+3. Start everything up

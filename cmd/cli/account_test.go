@@ -23,8 +23,6 @@ func Test_selectAccounts(t *testing.T) {
 		t.Fatalf("3. result should be 7")
 	}
 
-	clearSelected()
-
 	if len(selectedIds) != 0 {
 		t.Fatalf("size should be 0")
 	}
