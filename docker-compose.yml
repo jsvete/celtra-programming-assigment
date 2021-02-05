@@ -28,3 +28,6 @@ services:
       - POSTGRES_DB=tracker
       - POSTGRES_USER=tracker
       - POSTGRES_PASSWORD=tracker
+networks:
+  default:
+      name: celtra-programming-assigment

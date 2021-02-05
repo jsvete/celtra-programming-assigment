@@ -38,9 +38,9 @@ func TestMain(m *testing.M) {
 		}
 	})
 	if err != nil {
-		panic(fmt.Sprintf("container start: %v", err))
+		panic(fmt.Sprintf("start container: %v", err))
 	}
-	//	resource.Expire(60)
+	resource.Expire(60)
 
 	os.Setenv("REDIS_ADDR", "localhost:6379")
 
@@ -58,8 +58,9 @@ func TestMain(m *testing.M) {
 	// run tests
 	m.Run()
 
+	os.Unsetenv("REDIS_ADDR")
 	if err = pool.Purge(resource); err != nil {
-		panic(fmt.Sprintf("container stop: %v", err))
+		panic(fmt.Sprintf("stop container: %v", err))
 	}
 }
 

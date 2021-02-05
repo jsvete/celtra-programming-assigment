@@ -66,6 +66,12 @@ func TestMain(m *testing.M) {
 	// run tests
 	m.Run()
 
+	os.Unsetenv("DB_NAME")
+	os.Unsetenv("DB_USER")
+	os.Unsetenv("DB_PWD")
+	os.Unsetenv("DB_ADDR")
+	os.Unsetenv("DB_PORT")
+
 	if err = pool.Purge(resource); err != nil {
 		panic(fmt.Sprintf("container stop: %v", err))
 	}

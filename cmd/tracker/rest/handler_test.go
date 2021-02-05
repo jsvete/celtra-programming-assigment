@@ -8,7 +8,6 @@ import (
 	"celtra-programming-assigment/pkg/pubsub"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -87,13 +86,9 @@ func TestMain(m *testing.M) {
 	fakeDB = &mockedDB{}
 	persistence.DB = fakeDB
 
-	fmt.Printf("db: %+v\n", persistence.DB)
-
 	// pubsub mock
 	fakeBus = &mockedBus{}
 	pubsub.Bus = fakeBus
-
-	fmt.Printf("pubsub: %+v\n", pubsub.Bus)
 
 	m.Run()
 }
@@ -107,8 +102,6 @@ func Test_Post(t *testing.T) {
 		}
 		accounts[account.ID] = account
 
-		fmt.Printf("%+v\n", account)
-		fmt.Printf("%+v\n", accounts)
 		return account, nil
 	}
 
