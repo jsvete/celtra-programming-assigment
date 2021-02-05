@@ -4,10 +4,9 @@ services:
     container_name: tracker
     image: tracker:latest
     depends_on: 
-      - db
+      - postgres
       - redis
     restart: always
-    network_mode: bridge
     environment:       
       - DB_NAME=tracker
       - DB_USER=tracker
@@ -18,19 +17,14 @@ services:
     ports:
       - "8081:8081"
   redis:
+    container_name: redis
     image: redis:6.0.10-alpine3.12
     restart: always
-    network_mode: bridge
-  db:
+  postgres:
     container_name: postgres
     image: postgres:13.1
     restart: always
-    network_mode: bridge
     environment: 
       - POSTGRES_DB=tracker
       - POSTGRES_USER=tracker
       - POSTGRES_PASSWORD=tracker
-    ports: 
-      - "5432:5432"
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data

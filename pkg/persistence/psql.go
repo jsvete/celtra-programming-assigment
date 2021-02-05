@@ -80,7 +80,6 @@ func NewPostgres() error {
 
 	pg := &Postgres{}
 	dataSource := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPwd, dbAddr, dbPort, dbName)
-	fmt.Println(dataSource)
 	db, err := sql.Open("postgres", dataSource)
 	if err != nil {
 		return err

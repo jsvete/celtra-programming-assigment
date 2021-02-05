@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	redisAddr = flag.String("addr", "localhost", "Redis address")
+	redisAddr = flag.String("addr", "redis", "Redis address")
 	redisPort = flag.String("port", "6379", "Redis port")
 
 	commands = []string{"accounts", "events"}

@@ -36,4 +36,4 @@ COPY --from=builder /go/bin/${SERVICE} /go/bin/${SERVICE}
 ENV BINARY=${SERVICE}
 
 # start the binary from shell so we can pass the $BINARY environment variable to it
-ENTRYPOINT [ "sh", "-c", "/go/bin/$BINARY" ]
+ENTRYPOINT ["sh", "-c", "/go/bin/$BINARY"]
