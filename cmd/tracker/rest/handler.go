@@ -22,7 +22,7 @@ import (
 var (
 	// rate counter
 	counter = ratecounter.NewRateCounter(1 * time.Second)
-	// value of VIRTUAL_HOST environment variable
+	// hostname of the service (Docker container ID)
 	hostname, _ = os.Hostname()
 )
 
@@ -100,7 +100,7 @@ func handleRate(w http.ResponseWriter, r *http.Request, params httprouter.Params
 //
 // It creates a new account and returns a Location header with a relative URL where the new account can be accesed from.
 //
-// The function accepts JSON payload in the following format: {"name":"ACCOUNT_NAME", "isActive": true/false}
+// The function accepts JSON payload in the following format: {"Name":"ACCOUNT_NAME", "IsActive": true/false}
 func handlePost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	defer r.Body.Close()
 
