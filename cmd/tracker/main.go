@@ -1,9 +1,9 @@
 package main
 
 import (
+	"celtra-programming-assigment/cmd/tracker/rest"
 	"celtra-programming-assigment/pkg/persistence"
 	"celtra-programming-assigment/pkg/pubsub"
-	"celtra-programming-assigment/cmd/tracker/rest"
 	"net/http"
 
 	"github.com/rs/zerolog"
@@ -25,7 +25,7 @@ func main() {
 	}
 
 	// init REST API
-	if err := http.ListenAndServe(":8081", rest.CreateRouter()); err != nil {
+	if err := http.ListenAndServe(":8080", rest.CreateRouter()); err != nil {
 		panic(err)
 	}
 }

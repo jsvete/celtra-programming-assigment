@@ -1,7 +1,6 @@
 version: "3.9"
 services:
-  tracker:
-    container_name: tracker
+  tracker1:
     image: tracker:latest
     depends_on: 
       - postgres
@@ -14,8 +13,51 @@ services:
       - DB_ADDR=postgres
       - DB_PORT=5432
       - REDIS_ADDR=redis:6379
+      - VIRTUAL_HOST=tracker.local #used by nginx-proxy to load balance
+    expose: 
+      - "8080"
+  # tracker2:
+  #   image: tracker:latest
+  #   depends_on: 
+  #     - postgres
+  #     - redis
+  #   restart: always
+  #   environment:       
+  #     - DB_NAME=tracker
+  #     - DB_USER=tracker
+  #     - DB_PWD=tracker
+  #     - DB_ADDR=postgres
+  #     - DB_PORT=5432
+  #     - REDIS_ADDR=redis:6379
+  #     - VIRTUAL_HOST=tracker.local #used by nginx-proxy to load balance
+  #   expose: 
+  #     - "8080"
+  # tracker3:
+  #   image: tracker:latest
+  #   depends_on: 
+  #     - postgres
+  #     - redis
+  #   restart: always
+  #   environment:       
+  #     - DB_NAME=tracker
+  #     - DB_USER=tracker
+  #     - DB_PWD=tracker
+  #     - DB_ADDR=postgres
+  #     - DB_PORT=5432
+  #     - REDIS_ADDR=redis:6379
+  #     - VIRTUAL_HOST=tracker.local #used by nginx-proxy to load balance
+  #   expose: 
+  #     - "8080"
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: jwilder/nginx-proxy:alpine
+    restart: always
+    environment: 
+      - DEFAULT_HOST=tracker.local
     ports:
-      - "8081:8081"
+      - "8080:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
   redis:
     container_name: redis
     image: redis:6.0.10-alpine3.12
