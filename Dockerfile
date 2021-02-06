@@ -1,6 +1,6 @@
 FROM golang:1.15.7-alpine3.13 AS builder
 
-# SERVICE defines a directory name inside /code/cmd that we want to build (e.g. tracker or cli)
+# SERVICE defines a directory name inside /src/celtra-programming-assigment/cmd that we want to build (e.g. tracker or cli)
 ARG SERVICE
 
 WORKDIR $GOPATH/src/celtra-programming-assigment/

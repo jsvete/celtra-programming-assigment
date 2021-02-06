@@ -13,8 +13,8 @@ import (
 
 var redisAddr string // REDIS_ADDR
 
-// Redis struct is an implementation of PubSub interface
-// and wraps Redis client implementation plus it holds subscription callback.
+// Redis struct is an implementation of PubSub interface 
+// and is using a Redis client for publishing and subscribing.
 type Redis struct {
 	client *redis.Client
 }
